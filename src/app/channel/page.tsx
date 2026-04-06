@@ -22,6 +22,8 @@ import {
 } from "@/components/ui/table";
 import { Skeleton } from "@/components/ui/skeleton";
 import { formatNumber } from "@/lib/format";
+import ReactionBadge from "@/components/search/reaction-badge";
+import { calculateReaction } from "@/lib/reaction";
 import type { ChannelSearchResult } from "@/lib/youtube-api";
 
 /** 내부 채널 찾기 컴포넌트 */
@@ -129,6 +131,7 @@ function ChannelContent() {
                   <TableHead className="w-[100px] text-right">구독자</TableHead>
                   <TableHead className="w-[100px] text-right">총 조회수</TableHead>
                   <TableHead className="w-[80px] text-right">영상 수</TableHead>
+                  <TableHead className="w-[100px] text-center">평균 반응도</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -154,8 +157,10 @@ function ChannelContent() {
                         <div>
                           <p className="font-medium">{ch.channelTitle}</p>
                           {ch.description && (
-                            <p className="line-clamp-1 text-xs text-muted-foreground">
-                              {ch.description}
+                            <p className="text-xs text-muted-foreground">
+                              {ch.description.length > 20
+                                ? ch.description.slice(0, 20) + "…"
+                                : ch.description}
                             </p>
                           )}
                         </div>
@@ -171,6 +176,23 @@ function ChannelContent() {
                     </TableCell>
                     <TableCell className="text-right text-sm">
                       {formatNumber(ch.totalVideoCount)}
+                    </TableCell>
+                    <TableCell className="text-center">
+                      {ch.subscriberCount > 0 && ch.totalVideoCount > 0 ? (
+                        <ReactionBadge
+                          grade={calculateReaction(
+                            Math.round(ch.totalViewCount / ch.totalVideoCount),
+                            ch.subscriberCount
+                          ).grade}
+                          ratio={calculateReaction(
+                            Math.round(ch.totalViewCount / ch.totalVideoCount),
+                            ch.subscriberCount
+                          ).ratio}
+                          subscriberCount={ch.subscriberCount}
+                        />
+                      ) : (
+                        <span className="text-xs text-muted-foreground">-</span>
+                      )}
                     </TableCell>
                   </TableRow>
                 ))}
