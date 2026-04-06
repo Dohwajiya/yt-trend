@@ -28,12 +28,16 @@ import {
   formatDuration,
 } from "@/lib/format";
 import { calculateReactionDistribution } from "@/lib/keyword-analysis";
+import { cn } from "@/lib/utils";
 import type {
   EnrichedVideo,
   ChannelDetailStats,
   ChannelHealthResult,
   RevenueEstimate,
 } from "@/types/analysis";
+
+/** 채널 영상 정렬 기준 */
+type ChannelSortBy = "date" | "viewCount" | "reaction";
 
 interface ChannelApiResponse {
   items: EnrichedVideo[];
@@ -54,6 +58,7 @@ export default function ChannelDetailPage({ params }: ChannelDetailPageProps) {
   const [data, setData] = useState<ChannelApiResponse | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [sortBy, setSortBy] = useState<ChannelSortBy>("date");
 
   useEffect(() => {
     async function fetchChannel() {
@@ -238,69 +243,120 @@ export default function ChannelDetailPage({ params }: ChannelDetailPageProps) {
       </div>
 
       {/* 최근 영상 테이블 */}
-      {videos.length > 0 && (
-        <div className="overflow-x-auto">
-          <Table className="min-w-[700px]">
-            <TableHeader>
-              <TableRow className="hover:bg-transparent">
-                <TableHead className="w-[130px]">썸네일</TableHead>
-                <TableHead>제목</TableHead>
-                <TableHead className="w-[90px] text-right">조회수</TableHead>
-                <TableHead className="w-[80px] text-center">반응도</TableHead>
-                <TableHead className="w-[90px] text-right">게시일</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {videos.map((video) => (
-                <TableRow key={video.videoId} className="hover:bg-secondary/30">
-                  <TableCell className="p-2">
-                    <a
-                      href={`https://youtube.com/watch?v=${video.videoId}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="relative block aspect-video w-[110px] overflow-hidden rounded"
-                    >
-                      <Image
-                        src={video.thumbnailUrl}
-                        alt={video.title}
-                        fill
-                        className="object-cover"
-                        sizes="110px"
-                      />
-                      <span className="absolute bottom-0.5 right-0.5 rounded bg-black/80 px-1 py-0.5 text-[10px] text-white">
-                        {formatDuration(video.duration)}
-                      </span>
-                    </a>
-                  </TableCell>
-                  <TableCell>
-                    <a
-                      href={`https://youtube.com/watch?v=${video.videoId}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="line-clamp-2 text-sm font-medium hover:text-primary"
-                    >
-                      {video.title}
-                    </a>
-                  </TableCell>
-                  <TableCell className="text-right text-sm">
-                    {formatNumber(video.viewCount)}
-                  </TableCell>
-                  <TableCell className="text-center">
-                    <ReactionBadge
-                      grade={video.reaction.grade}
-                      ratio={video.reaction.ratio}
-                      subscriberCount={video.subscriberCount}
-                    />
-                  </TableCell>
-                  <TableCell className="text-right text-xs text-muted-foreground">
-                    {formatRelativeDate(video.publishedAt)}
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </div>
-      )}
+      {videos.length > 0 && (() => {
+        // 정렬 적용
+        const sortedVideos = [...videos].sort((a, b) => {
+          switch (sortBy) {
+            case "viewCount":
+              return b.viewCount - a.viewCount;
+            case "reaction":
+              return b.reaction.ratio - a.reaction.ratio;
+            case "date":
+            default:
+              return new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime();
+          }
+        });
+
+        return (
+          <>
+            {/* 정렬 버튼 */}
+            <div className="flex items-center gap-2">
+              <span className="text-sm text-muted-foreground">정렬:</span>
+              <div className="flex rounded-md border border-border/50">
+                {([
+                  { value: "date" as ChannelSortBy, label: "최신순" },
+                  { value: "viewCount" as ChannelSortBy, label: "조회수순" },
+                  { value: "reaction" as ChannelSortBy, label: "반응도순" },
+                ]).map((opt) => (
+                  <Button
+                    key={opt.value}
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setSortBy(opt.value)}
+                    className={cn(
+                      "rounded-none border-r border-border/50 last:border-r-0 px-3 h-8 text-xs",
+                      sortBy === opt.value
+                        ? "bg-primary/15 text-primary"
+                        : "text-muted-foreground"
+                    )}
+                  >
+                    {opt.label}
+                  </Button>
+                ))}
+              </div>
+              <span className="ml-auto text-xs text-muted-foreground">
+                분석 {videos.length}개 / 총 {formatNumber(channelStats?.totalVideoCount ?? 0)}개 영상
+              </span>
+            </div>
+
+            <div className="overflow-x-auto">
+              <Table className="min-w-[750px]">
+                <TableHeader>
+                  <TableRow className="hover:bg-transparent">
+                    <TableHead className="w-10 text-center">#</TableHead>
+                    <TableHead className="w-[130px]">썸네일</TableHead>
+                    <TableHead>제목</TableHead>
+                    <TableHead className="w-[90px] text-right">조회수</TableHead>
+                    <TableHead className="w-[80px] text-center">반응도</TableHead>
+                    <TableHead className="w-[90px] text-right">게시일</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {sortedVideos.map((video, index) => (
+                    <TableRow key={video.videoId} className="hover:bg-secondary/30">
+                      <TableCell className="text-center text-sm font-bold text-primary">
+                        {index + 1}
+                      </TableCell>
+                      <TableCell className="p-2">
+                        <a
+                          href={`https://youtube.com/watch?v=${video.videoId}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="relative block aspect-video w-[110px] overflow-hidden rounded"
+                        >
+                          <Image
+                            src={video.thumbnailUrl}
+                            alt={video.title}
+                            fill
+                            className="object-cover"
+                            sizes="110px"
+                          />
+                          <span className="absolute bottom-0.5 right-0.5 rounded bg-black/80 px-1 py-0.5 text-[10px] text-white">
+                            {formatDuration(video.duration)}
+                          </span>
+                        </a>
+                      </TableCell>
+                      <TableCell>
+                        <a
+                          href={`https://youtube.com/watch?v=${video.videoId}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="line-clamp-2 text-sm font-medium hover:text-primary"
+                        >
+                          {video.title}
+                        </a>
+                      </TableCell>
+                      <TableCell className="text-right text-sm">
+                        {formatNumber(video.viewCount)}
+                      </TableCell>
+                      <TableCell className="text-center">
+                        <ReactionBadge
+                          grade={video.reaction.grade}
+                          ratio={video.reaction.ratio}
+                          subscriberCount={video.subscriberCount}
+                        />
+                      </TableCell>
+                      <TableCell className="text-right text-xs text-muted-foreground">
+                        {formatRelativeDate(video.publishedAt)}
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+          </>
+        );
+      })()}
     </div>
   );
 }

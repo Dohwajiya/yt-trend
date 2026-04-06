@@ -65,6 +65,7 @@ export default function VideoTable({
         <Table className="min-w-[800px]">
           <TableHeader>
             <TableRow className="hover:bg-transparent">
+              <TableHead className="w-10 text-center">#</TableHead>
               <TableHead className="w-10">
                 <Checkbox
                   checked={allSelected}
@@ -80,10 +81,11 @@ export default function VideoTable({
             </TableRow>
           </TableHeader>
           <TableBody>
-            {videos.map((video) => (
+            {videos.map((video, index) => (
               <VideoRow
                 key={video.videoId}
                 video={video}
+                rank={index + 1}
                 isSelected={selectedVideoIds.has(video.videoId)}
                 onToggleSelect={onToggleSelect}
               />

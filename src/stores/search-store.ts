@@ -9,7 +9,7 @@ import type {
   VideoTypeFilter,
   SearchApiResponse,
 } from "@/types/analysis";
-import type { DateFilter } from "@/components/search/search-filters";
+import type { DateFilter, SortBy } from "@/components/search/search-filters";
 import { useHistoryStore } from "@/stores/history-store";
 
 /**
@@ -45,6 +45,7 @@ interface SearchState {
   regionCode: string;
   videoTypeFilter: VideoTypeFilter;
   dateFilter: DateFilter;
+  sortBy: SortBy;
   results: EnrichedVideo[];
   nextPageToken: string | null;
   isLoading: boolean;
@@ -56,6 +57,7 @@ interface SearchState {
   setRegionCode: (code: string) => void;
   setVideoTypeFilter: (filter: VideoTypeFilter) => void;
   setDateFilter: (filter: DateFilter) => void;
+  setSortBy: (sort: SortBy) => void;
   search: (keyword?: string) => Promise<void>;
   loadMore: () => Promise<void>;
   reset: () => void;
@@ -90,6 +92,7 @@ export const useSearchStore = create<SearchState>((set, get) => ({
   regionCode: "KR",
   videoTypeFilter: "all",
   dateFilter: "all",
+  sortBy: "relevance",
   results: [],
   nextPageToken: null,
   isLoading: false,
@@ -101,6 +104,7 @@ export const useSearchStore = create<SearchState>((set, get) => ({
   setRegionCode: (regionCode) => set({ regionCode }),
   setVideoTypeFilter: (videoTypeFilter) => set({ videoTypeFilter }),
   setDateFilter: (dateFilter) => set({ dateFilter }),
+  setSortBy: (sortBy) => set({ sortBy }),
 
   search: async (keyword?: string) => {
     const state = get();
@@ -212,6 +216,22 @@ export const useSearchStore = create<SearchState>((set, get) => ({
       filtered = filtered.filter(
         (v) => new Date(v.publishedAt) >= threshold
       );
+    }
+
+    // 정렬
+    if (state.sortBy !== "relevance") {
+      filtered = [...filtered].sort((a, b) => {
+        switch (state.sortBy) {
+          case "viewCount":
+            return b.viewCount - a.viewCount;
+          case "date":
+            return new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime();
+          case "reaction":
+            return b.reaction.ratio - a.reaction.ratio;
+          default:
+            return 0;
+        }
+      });
     }
 
     return filtered;

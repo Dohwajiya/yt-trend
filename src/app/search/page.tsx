@@ -24,6 +24,7 @@ function SearchContent() {
     regionCode,
     videoTypeFilter,
     dateFilter,
+    sortBy,
     results,
     nextPageToken,
     isLoading,
@@ -33,6 +34,7 @@ function SearchContent() {
     setRegionCode,
     setVideoTypeFilter,
     setDateFilter,
+    setSortBy,
     search,
     loadMore,
     toggleVideoSelection,
@@ -80,6 +82,8 @@ function SearchContent() {
           onVideoTypeChange={setVideoTypeFilter}
           dateFilter={dateFilter}
           onDateFilterChange={setDateFilter}
+          sortBy={sortBy}
+          onSortByChange={setSortBy}
           regionCode={regionCode}
           onRegionChange={(code) => {
             setRegionCode(code);

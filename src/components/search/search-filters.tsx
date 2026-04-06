@@ -19,22 +19,19 @@ import { cn } from "@/lib/utils";
 /** 업로드 날짜 필터 값 */
 export type DateFilter = "all" | "1d" | "1w" | "1m" | "3m" | "1y";
 
+/** 정렬 기준 */
+export type SortBy = "relevance" | "viewCount" | "date" | "reaction";
+
 interface SearchFiltersProps {
-  /** 현재 영상 타입 필터 */
   videoTypeFilter: VideoTypeFilter;
-  /** 영상 타입 필터 변경 콜백 */
   onVideoTypeChange: (filter: VideoTypeFilter) => void;
-  /** 현재 업로드 날짜 필터 */
   dateFilter: DateFilter;
-  /** 업로드 날짜 필터 변경 콜백 */
   onDateFilterChange: (filter: DateFilter) => void;
-  /** 현재 지역 코드 */
+  sortBy: SortBy;
+  onSortByChange: (sort: SortBy) => void;
   regionCode: string;
-  /** 지역 코드 변경 콜백 */
   onRegionChange: (code: string) => void;
-  /** 총 결과 수 */
   totalResults: number;
-  /** 현재 표시 중인 결과 수 */
   displayCount: number;
 }
 
@@ -55,6 +52,14 @@ const dateFilters: { value: DateFilter; label: string }[] = [
   { value: "1y", label: "1년" },
 ];
 
+/** 정렬 옵션 */
+const sortOptions: { value: SortBy; label: string }[] = [
+  { value: "relevance", label: "관련도순" },
+  { value: "viewCount", label: "조회수순" },
+  { value: "date", label: "최신순" },
+  { value: "reaction", label: "반응도순" },
+];
+
 /** 지역 코드 옵션 */
 const regions = [
   { value: "KR", label: "한국" },
@@ -69,35 +74,62 @@ export default function SearchFilters({
   onVideoTypeChange,
   dateFilter,
   onDateFilterChange,
+  sortBy,
+  onSortByChange,
   regionCode,
   onRegionChange,
   totalResults,
   displayCount,
 }: SearchFiltersProps) {
   return (
-    <div className="flex flex-wrap items-center justify-between gap-3">
-      {/* 좌측: 필터 그룹 */}
-      <div className="flex flex-wrap items-center gap-2">
-        {/* 영상 타입 필터 */}
-        <div className="flex rounded-md border border-border/50">
-          {typeFilters.map((filter) => (
-            <Button
-              key={filter.value}
-              variant="ghost"
-              size="sm"
-              onClick={() => onVideoTypeChange(filter.value)}
-              className={cn(
-                "rounded-none border-r border-border/50 last:border-r-0 px-3 h-8 text-xs",
-                videoTypeFilter === filter.value
-                  ? "bg-primary/15 text-primary"
-                  : "text-muted-foreground"
-              )}
-            >
-              {filter.label}
-            </Button>
-          ))}
+    <div className="space-y-2">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        {/* 좌측: 필터 그룹 */}
+        <div className="flex flex-wrap items-center gap-2">
+          {/* 영상 타입 필터 */}
+          <div className="flex rounded-md border border-border/50">
+            {typeFilters.map((filter) => (
+              <Button
+                key={filter.value}
+                variant="ghost"
+                size="sm"
+                onClick={() => onVideoTypeChange(filter.value)}
+                className={cn(
+                  "rounded-none border-r border-border/50 last:border-r-0 px-3 h-8 text-xs",
+                  videoTypeFilter === filter.value
+                    ? "bg-primary/15 text-primary"
+                    : "text-muted-foreground"
+                )}
+              >
+                {filter.label}
+              </Button>
+            ))}
+          </div>
+
+          {/* 지역 선택 */}
+          <Select value={regionCode} onValueChange={(val) => { if (val) onRegionChange(val); }}>
+            <SelectTrigger className="h-8 w-24 text-xs">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {regions.map((region) => (
+                <SelectItem key={region.value} value={region.value}>
+                  {region.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
 
+        {/* 우측: 결과 수 표시 */}
+        <span className="text-sm text-muted-foreground">
+          결과: {displayCount}건
+          {totalResults > 0 && ` / 총 ${totalResults.toLocaleString()}건`}
+        </span>
+      </div>
+
+      {/* 2행: 날짜 필터 + 정렬 */}
+      <div className="flex flex-wrap items-center gap-2">
         {/* 업로드 날짜 필터 */}
         <div className="flex rounded-md border border-border/50">
           {dateFilters.map((filter) => (
@@ -118,26 +150,26 @@ export default function SearchFilters({
           ))}
         </div>
 
-        {/* 지역 선택 */}
-        <Select value={regionCode} onValueChange={(val) => { if (val) onRegionChange(val); }}>
-          <SelectTrigger className="h-8 w-24 text-xs">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            {regions.map((region) => (
-              <SelectItem key={region.value} value={region.value}>
-                {region.label}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+        {/* 정렬 */}
+        <div className="flex rounded-md border border-border/50">
+          {sortOptions.map((opt) => (
+            <Button
+              key={opt.value}
+              variant="ghost"
+              size="sm"
+              onClick={() => onSortByChange(opt.value)}
+              className={cn(
+                "rounded-none border-r border-border/50 last:border-r-0 px-2 h-8 text-xs",
+                sortBy === opt.value
+                  ? "bg-primary/15 text-primary"
+                  : "text-muted-foreground"
+              )}
+            >
+              {opt.label}
+            </Button>
+          ))}
+        </div>
       </div>
-
-      {/* 우측: 결과 수 표시 */}
-      <span className="text-sm text-muted-foreground">
-        결과: {displayCount}건
-        {totalResults > 0 && ` / 총 ${totalResults.toLocaleString()}건`}
-      </span>
     </div>
   );
 }

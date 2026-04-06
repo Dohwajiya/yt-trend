@@ -19,6 +19,8 @@ import {
 interface VideoRowProps {
   /** 영상 데이터 */
   video: EnrichedVideo;
+  /** 순위 */
+  rank: number;
   /** 선택 여부 */
   isSelected: boolean;
   /** 선택 토글 콜백 */
@@ -27,11 +29,17 @@ interface VideoRowProps {
 
 export default function VideoRow({
   video,
+  rank,
   isSelected,
   onToggleSelect,
 }: VideoRowProps) {
   return (
     <TableRow className="hover:bg-secondary/30">
+      {/* 순위 */}
+      <TableCell className="w-10 text-center text-sm font-bold text-primary">
+        {rank}
+      </TableCell>
+
       {/* 체크박스 */}
       <TableCell className="w-10">
         <Checkbox
