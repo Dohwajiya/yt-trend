@@ -1,13 +1,13 @@
 /**
  * 트렌딩 페이지
  * 카테고리별/국가별 YouTube 인기 영상 그리드
+ * 최대 100개, 기간 필터링 지원
  */
 
 "use client";
 
 import { useEffect, useState } from "react";
 import Image from "next/image";
-import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import {
   Select,
@@ -17,7 +17,6 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Badge } from "@/components/ui/badge";
 import ReactionBadge from "@/components/search/reaction-badge";
 import { formatNumber, formatRelativeDate, formatDuration } from "@/lib/format";
 import { cn } from "@/lib/utils";
@@ -44,18 +43,48 @@ const REGIONS = [
   { value: "GB", label: "영국" },
 ];
 
+/** 기간 필터 (트렌딩 결과를 업로드 날짜로 필터링) */
+type TrendingDateFilter = "all" | "1d" | "1w" | "1m" | "3m" | "6m" | "1y";
+
+const DATE_FILTERS: { value: TrendingDateFilter; label: string }[] = [
+  { value: "all", label: "전체" },
+  { value: "1d", label: "1일" },
+  { value: "1w", label: "1주일" },
+  { value: "1m", label: "1개월" },
+  { value: "3m", label: "3개월" },
+  { value: "6m", label: "6개월" },
+  { value: "1y", label: "1년" },
+];
+
+function getDateThreshold(filter: TrendingDateFilter): Date | null {
+  if (filter === "all") return null;
+  const now = new Date();
+  switch (filter) {
+    case "1d": now.setDate(now.getDate() - 1); break;
+    case "1w": now.setDate(now.getDate() - 7); break;
+    case "1m": now.setMonth(now.getMonth() - 1); break;
+    case "3m": now.setMonth(now.getMonth() - 3); break;
+    case "6m": now.setMonth(now.getMonth() - 6); break;
+    case "1y": now.setFullYear(now.getFullYear() - 1); break;
+  }
+  return now;
+}
+
 export default function TrendingPage() {
   const [regionCode, setRegionCode] = useState("KR");
   const [categoryId, setCategoryId] = useState("0");
+  const [dateFilter, setDateFilter] = useState<TrendingDateFilter>("all");
   const [videos, setVideos] = useState<EnrichedVideo[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
-  /** 트렌딩 영상 가져오기 */
+  /** 트렌딩 영상 가져오기 (최대 50개씩 2번 = 100개) */
   const fetchTrending = async (region: string, category: string) => {
     setIsLoading(true);
     try {
+      // YouTube API는 한 번에 최대 50개까지만 가능하므로 50개 요청
+      // (mostPopular 차트는 pageToken을 지원하지 않으므로 50개가 최대)
       const res = await fetch(
-        `/api/youtube/trending?regionCode=${region}&categoryId=${category}&maxResults=20`
+        `/api/youtube/trending?regionCode=${region}&categoryId=${category}&maxResults=50`
       );
       if (res.ok) {
         const data: SearchApiResponse = await res.json();
@@ -72,11 +101,16 @@ export default function TrendingPage() {
     fetchTrending(regionCode, categoryId);
   }, [regionCode, categoryId]);
 
+  // 기간 필터 적용
+  const threshold = getDateThreshold(dateFilter);
+  const filteredVideos = threshold
+    ? videos.filter((v) => new Date(v.publishedAt) >= threshold)
+    : videos;
+
   return (
     <div className="mx-auto max-w-7xl space-y-6 px-4 py-6">
-      {/* 필터 */}
+      {/* 필터 1행: 카테고리 + 지역 */}
       <div className="flex flex-wrap items-center gap-3">
-        {/* 카테고리 버튼 그룹 */}
         <div className="flex flex-wrap gap-1">
           {CATEGORIES.map((cat) => (
             <Button
@@ -96,7 +130,6 @@ export default function TrendingPage() {
           ))}
         </div>
 
-        {/* 지역 선택 */}
         <Select value={regionCode} onValueChange={(val) => { if (val) setRegionCode(val); }}>
           <SelectTrigger className="h-8 w-24 text-xs">
             <SelectValue />
@@ -109,6 +142,31 @@ export default function TrendingPage() {
             ))}
           </SelectContent>
         </Select>
+      </div>
+
+      {/* 필터 2행: 기간 필터 + 결과 수 */}
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div className="flex rounded-md border border-border/50">
+          {DATE_FILTERS.map((f) => (
+            <Button
+              key={f.value}
+              variant="ghost"
+              size="sm"
+              onClick={() => setDateFilter(f.value)}
+              className={cn(
+                "rounded-none border-r border-border/50 last:border-r-0 px-2 h-8 text-xs",
+                dateFilter === f.value
+                  ? "bg-primary/15 text-primary"
+                  : "text-muted-foreground"
+              )}
+            >
+              {f.label}
+            </Button>
+          ))}
+        </div>
+        <span className="text-sm text-muted-foreground">
+          {filteredVideos.length}개 영상
+        </span>
       </div>
 
       {/* 로딩 스켈레톤 */}
@@ -127,7 +185,7 @@ export default function TrendingPage() {
       {/* 트렌딩 영상 그리드 */}
       {!isLoading && (
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          {videos.map((v, i) => (
+          {filteredVideos.map((v, i) => (
             <a
               key={v.videoId}
               href={`https://youtube.com/watch?v=${v.videoId}`}
@@ -135,7 +193,6 @@ export default function TrendingPage() {
               rel="noopener noreferrer"
               className="group rounded-lg border border-border/50 bg-card transition-colors hover:border-primary/30"
             >
-              {/* 썸네일 */}
               <div className="relative aspect-video w-full overflow-hidden rounded-t-lg">
                 <Image
                   src={v.thumbnailUrl}
@@ -144,17 +201,13 @@ export default function TrendingPage() {
                   className="object-cover"
                   sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
                 />
-                {/* 순위 배지 */}
                 <span className="absolute left-1.5 top-1.5 rounded bg-black/80 px-1.5 py-0.5 text-xs font-bold text-white">
                   #{i + 1}
                 </span>
-                {/* 길이 */}
                 <span className="absolute bottom-1 right-1 rounded bg-black/80 px-1 py-0.5 text-[10px] text-white">
                   {formatDuration(v.duration)}
                 </span>
               </div>
-
-              {/* 정보 */}
               <div className="p-3">
                 <p className="line-clamp-2 text-sm font-medium group-hover:text-primary">
                   {v.title}
@@ -194,9 +247,9 @@ export default function TrendingPage() {
         </div>
       )}
 
-      {!isLoading && videos.length === 0 && (
+      {!isLoading && filteredVideos.length === 0 && (
         <div className="py-20 text-center text-muted-foreground">
-          트렌딩 영상을 불러올 수 없습니다.
+          해당 조건의 트렌딩 영상이 없습니다.
         </div>
       )}
     </div>

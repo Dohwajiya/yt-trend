@@ -112,8 +112,41 @@ export default function KeywordsPage() {
 
       {/* 분석 결과 */}
       {!isLoading && (competition || suggestions.length > 0) && (
+        <>
+        {/* 자동완성 TOP 5 */}
+        {suggestions.length > 0 && (
+          <Card>
+            <CardContent className="p-5">
+              <h3 className="mb-3 font-semibold">자동완성 키워드 TOP 5</h3>
+              <div className="space-y-1">
+                {suggestions.slice(0, 5).map((s, i) => (
+                  <button
+                    key={s}
+                    onClick={() => handleSuggestionClick(s)}
+                    className="flex w-full items-center gap-3 rounded-md px-3 py-2 text-sm hover:bg-secondary/50"
+                  >
+                    <span className="w-6 text-center font-bold text-primary">
+                      {i + 1}
+                    </span>
+                    <span className="font-medium">{s}</span>
+                    <span
+                      className="ml-auto cursor-pointer text-xs text-primary hover:underline"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        goToSearch(s);
+                      }}
+                    >
+                      영상 찾기 →
+                    </span>
+                  </button>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
-          {/* 연관 키워드 추천 */}
+          {/* 연관 키워드 전체 */}
           <Card>
             <CardContent className="p-5">
               <h3 className="mb-3 font-semibold">연관 키워드</h3>
@@ -233,6 +266,7 @@ export default function KeywordsPage() {
             </CardContent>
           </Card>
         </div>
+        </>
       )}
 
       {/* 분석 영상 Top 5 */}

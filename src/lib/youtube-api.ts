@@ -417,3 +417,64 @@ export async function getChannelVideos(
     totalResults: searchResult.pageInfo.totalResults,
   };
 }
+
+/** 채널 검색 결과 항목 */
+export interface ChannelSearchResult {
+  channelId: string;
+  channelTitle: string;
+  channelThumbnailUrl: string;
+  description: string;
+  subscriberCount: number;
+  totalViewCount: number;
+  totalVideoCount: number;
+}
+
+/**
+ * 키워드로 채널을 직접 검색하는 함수 (type=channel)
+ * Quota: 100유닛(search) + 1유닛(channels) = 101유닛
+ */
+export async function searchChannels(
+  keyword: string,
+  maxResults: number = 10
+): Promise<ChannelSearchResult[]> {
+  const params = new URLSearchParams({
+    part: "snippet",
+    q: keyword,
+    type: "channel",
+    maxResults: String(maxResults),
+    key: getApiKey(),
+  });
+
+  const response = await fetch(`${YOUTUBE_API_BASE}/search?${params}`);
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(`채널 검색 오류: ${error.error?.message ?? response.statusText}`);
+  }
+
+  const data = await response.json();
+
+  interface RawChannelItem {
+    id: { channelId: string };
+    snippet: { title: string; description: string; thumbnails: { default: { url: string } } };
+  }
+
+  const rawItems: RawChannelItem[] = data.items;
+  const ids = rawItems.map((item) => item.id.channelId);
+  if (ids.length === 0) return [];
+
+  const channelDetails = await getChannelDetails(ids);
+  const channelMap = new Map(channelDetails.items.map((c) => [c.id, c]));
+
+  return rawItems.map((item) => {
+    const detail = channelMap.get(item.id.channelId);
+    return {
+      channelId: item.id.channelId,
+      channelTitle: detail?.snippet.title ?? item.snippet.title,
+      channelThumbnailUrl: detail?.snippet.thumbnails.default?.url ?? item.snippet.thumbnails.default.url,
+      description: detail?.snippet.description ?? item.snippet.description,
+      subscriberCount: parseInt(detail?.statistics.subscriberCount ?? "0"),
+      totalViewCount: parseInt(detail?.statistics.viewCount ?? "0"),
+      totalVideoCount: parseInt(detail?.statistics.videoCount ?? "0"),
+    };
+  });
+}
