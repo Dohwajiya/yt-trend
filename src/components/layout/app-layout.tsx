@@ -13,6 +13,7 @@ import {
   Sheet,
   SheetContent,
 } from "@/components/ui/sheet";
+import { TooltipProvider } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 
 interface AppLayoutProps {
@@ -26,7 +27,7 @@ export default function AppLayout({ children }: AppLayoutProps) {
   const [mobileOpen, setMobileOpen] = useState(false);
 
   return (
-    <>
+    <TooltipProvider delay={150}>
       {/* 데스크톱 사이드바 (md 이상에서만 보임) */}
       <div className="hidden md:block">
         <AppSidebar
@@ -55,6 +56,6 @@ export default function AppLayout({ children }: AppLayoutProps) {
         <AppHeader onMobileMenuToggle={() => setMobileOpen(true)} />
         <main className="flex-1">{children}</main>
       </div>
-    </>
+    </TooltipProvider>
   );
 }

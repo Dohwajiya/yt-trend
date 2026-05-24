@@ -50,10 +50,10 @@ export function calculateReaction(
 export function getReactionColorClass(grade: ReactionGrade): string {
   switch (grade) {
     case "Good":
-      return "bg-emerald-500/20 text-emerald-400 border-emerald-500/30";
+      return "bg-emerald-500/15 text-emerald-700 border-emerald-500/30";
     case "Normal":
-      return "bg-gray-500/20 text-gray-400 border-gray-500/30";
+      return "bg-gray-500/15 text-gray-600 border-gray-400/30";
     case "Bad":
-      return "bg-red-500/20 text-red-400 border-red-500/30";
+      return "bg-red-500/15 text-red-700 border-red-500/30";
   }
 }

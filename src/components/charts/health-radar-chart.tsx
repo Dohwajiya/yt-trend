@@ -61,30 +61,30 @@ export default function HealthRadarChart({
   return (
     <ResponsiveContainer width="100%" height={height}>
       <RadarChart data={chartData}>
-        <PolarGrid stroke="#374151" />
+        <PolarGrid stroke="#e5e7eb" />
         <PolarAngleAxis
           dataKey="subject"
-          tick={{ fill: "#9ca3af", fontSize: 11 }}
+          tick={{ fill: "#6b7280", fontSize: 11 }}
         />
         <PolarRadiusAxis
           angle={90}
           domain={[0, 100]}
-          tick={{ fill: "#6b7280", fontSize: 10 }}
+          tick={{ fill: "#9ca3af", fontSize: 10 }}
         />
         <Radar
           name={labelA}
           dataKey="A"
-          stroke="#34d399"
-          fill="#34d399"
-          fillOpacity={0.2}
+          stroke="#10b981"
+          fill="#10b981"
+          fillOpacity={0.25}
         />
         {dataB && (
           <Radar
             name={labelB ?? "B"}
             dataKey="B"
-            stroke="#60a5fa"
-            fill="#60a5fa"
-            fillOpacity={0.2}
+            stroke="#3b82f6"
+            fill="#3b82f6"
+            fillOpacity={0.25}
           />
         )}
         <Legend wrapperStyle={{ fontSize: "12px" }} />

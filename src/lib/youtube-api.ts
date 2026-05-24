@@ -9,7 +9,13 @@ import type {
   YouTubeVideoResponse,
   YouTubeChannelResponse,
 } from "@/types/youtube";
-import type { EnrichedVideo, SearchApiResponse, ChannelDetailStats } from "@/types/analysis";
+import type {
+  EnrichedVideo,
+  SearchApiResponse,
+  ChannelDetailStats,
+  CompetitorSnapshot,
+  CommentItem,
+} from "@/types/analysis";
 import { calculateReaction } from "@/lib/reaction";
 import { isShorts } from "@/lib/format";
 
@@ -476,5 +482,110 @@ export async function searchChannels(
       totalViewCount: parseInt(detail?.statistics.viewCount ?? "0"),
       totalVideoCount: parseInt(detail?.statistics.videoCount ?? "0"),
     };
+  });
+}
+
+/**
+ * 여러 채널의 경량 통계를 한 번에 조회하는 함수 (경쟁 채널 추적용)
+ * channels.list는 최대 50개 ID를 1유닛으로 일괄 조회하므로 쿼터에 효율적이다.
+ * 입력한 channelIds 순서를 유지하여 반환한다.
+ *
+ * @param channelIds - 조회할 채널 ID 배열 (최대 50개)
+ * @returns 채널별 경량 통계 스냅샷 목록
+ */
+export async function getChannelStatsBatch(
+  channelIds: string[]
+): Promise<CompetitorSnapshot[]> {
+  if (channelIds.length === 0) return [];
+
+  const channelDetails = await getChannelDetails(channelIds);
+  const channelMap = new Map(channelDetails.items.map((c) => [c.id, c]));
+
+  // 입력 순서를 유지하기 위해 channelIds 기준으로 매핑
+  return channelIds
+    .map((id) => {
+      const c = channelMap.get(id);
+      if (!c) return null;
+
+      const subscriberCount = parseInt(c.statistics.subscriberCount ?? "0");
+      const totalViewCount = parseInt(c.statistics.viewCount ?? "0");
+      const totalVideoCount = parseInt(c.statistics.videoCount ?? "0");
+      // 영상당 평균 조회수와 그에 따른 채널 평균 반응도 계산
+      const avgViewsPerVideo =
+        totalVideoCount > 0 ? Math.round(totalViewCount / totalVideoCount) : 0;
+      const avgReactionRatio =
+        subscriberCount > 0 ? avgViewsPerVideo / subscriberCount : 0;
+
+      return {
+        channelId: c.id,
+        channelTitle: c.snippet.title,
+        channelThumbnailUrl: c.snippet.thumbnails.default?.url ?? "",
+        subscriberCount,
+        totalViewCount,
+        totalVideoCount,
+        avgViewsPerVideo,
+        avgReactionRatio,
+      } satisfies CompetitorSnapshot;
+    })
+    .filter((c): c is CompetitorSnapshot => c !== null);
+}
+
+/**
+ * 특정 영상의 인기 댓글을 조회하는 함수 (commentThreads.list, 1유닛)
+ * 시청자 반응·니즈를 콘텐츠 아이디어로 활용하기 위함이다.
+ *
+ * @param videoId - 영상 ID
+ * @param maxResults - 최대 댓글 수 (기본 15)
+ * @returns 인기순 댓글 목록
+ */
+export async function getVideoComments(
+  videoId: string,
+  maxResults: number = 15
+): Promise<CommentItem[]> {
+  const params = new URLSearchParams({
+    part: "snippet",
+    videoId,
+    order: "relevance",
+    maxResults: String(maxResults),
+    textFormat: "plainText",
+    key: getApiKey(),
+  });
+
+  const response = await fetch(`${YOUTUBE_API_BASE}/commentThreads?${params}`);
+
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(
+      `YouTube 댓글 API 오류: ${error.error?.message ?? response.statusText}`
+    );
+  }
+
+  const data = await response.json();
+
+  interface RawThread {
+    id: string;
+    snippet: {
+      topLevelComment: {
+        snippet: {
+          textDisplay: string;
+          authorDisplayName: string;
+          authorProfileImageUrl: string;
+          likeCount: number;
+          publishedAt: string;
+        };
+      };
+    };
+  }
+
+  return (data.items as RawThread[]).map((t) => {
+    const c = t.snippet.topLevelComment.snippet;
+    return {
+      id: t.id,
+      author: c.authorDisplayName,
+      authorProfileImageUrl: c.authorProfileImageUrl,
+      text: c.textDisplay,
+      likeCount: c.likeCount,
+      publishedAt: c.publishedAt,
+    } satisfies CommentItem;
   });
 }

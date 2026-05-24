@@ -12,7 +12,7 @@ import Link from "next/link";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Search, Flame, TrendingUp } from "lucide-react";
+import { Search, Flame, TrendingUp, Sparkles, Eye } from "lucide-react";
 import { useHistoryStore } from "@/stores/history-store";
 import { formatNumber, formatRelativeDate } from "@/lib/format";
 import type { EnrichedVideo, SearchApiResponse } from "@/types/analysis";
@@ -50,7 +50,28 @@ export default function DashboardPage() {
   return (
     <div className="mx-auto max-w-7xl space-y-6 px-4 py-6">
       {/* 상단 요약 카드 */}
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <SummaryCard
+          icon={<Sparkles className="h-5 w-5" />}
+          label="영감 발굴"
+          value="떡상 탐지"
+          sub="구독자 대비 폭발한 영상"
+          href="/discover"
+        />
+        <SummaryCard
+          icon={<Eye className="h-5 w-5" />}
+          label="경쟁 채널"
+          value="벤치마크"
+          sub="유사 채널 추적·비교"
+          href="/competitors"
+        />
+        <SummaryCard
+          icon={<TrendingUp className="h-5 w-5" />}
+          label="키워드 분석"
+          value="기회 발굴"
+          sub="저경쟁·고반응 키워드"
+          href="/keywords"
+        />
         <SummaryCard
           icon={<Search className="h-5 w-5" />}
           label="최근 검색"
@@ -64,13 +85,6 @@ export default function DashboardPage() {
           value={`${trendingKR.length + trendingUS.length}개`}
           sub="한국 + 해외 인기 영상"
           href="/trending"
-        />
-        <SummaryCard
-          icon={<TrendingUp className="h-5 w-5" />}
-          label="키워드 분석"
-          value="무제한"
-          sub="연관 키워드 + 경쟁도"
-          href="/keywords"
         />
       </div>
 
@@ -198,10 +212,10 @@ function TrendingSection({
                     variant="outline"
                     className={
                       v.reaction.grade === "Good"
-                        ? "bg-emerald-500/20 text-emerald-400 border-emerald-500/30 text-[10px]"
+                        ? "bg-emerald-500/15 text-emerald-700 border-emerald-500/30 text-[10px]"
                         : v.reaction.grade === "Bad"
-                          ? "bg-red-500/20 text-red-400 border-red-500/30 text-[10px]"
-                          : "bg-gray-500/20 text-gray-400 border-gray-500/30 text-[10px]"
+                          ? "bg-red-500/15 text-red-700 border-red-500/30 text-[10px]"
+                          : "bg-gray-500/15 text-gray-600 border-gray-400/30 text-[10px]"
                     }
                   >
                     {v.reaction.grade}

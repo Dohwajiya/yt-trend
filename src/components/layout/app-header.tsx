@@ -15,9 +15,12 @@ import { useState } from "react";
 const pageTitles: Record<string, string> = {
   "/": "대시보드",
   "/search": "영상 찾기",
+  "/discover": "영감 발굴",
   "/keywords": "키워드 분석",
   "/trending": "트렌딩",
   "/channel": "채널 분석",
+  "/competitors": "경쟁 채널",
+  "/compare": "채널 비교",
 };
 
 interface AppHeaderProps {

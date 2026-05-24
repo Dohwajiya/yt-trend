@@ -186,3 +186,102 @@ export interface VideoCategory {
   id: string;
   label: string;
 }
+
+/** 아웃라이어(떡상) 등급 라벨 */
+export type OutlierTierLevel = "초대박" | "떡상" | "좋음" | "평범";
+
+/** 아웃라이어 등급 정보 (배수 기반) */
+export interface OutlierTier {
+  /** 등급 라벨 */
+  level: OutlierTierLevel;
+  /** 표시용 이모지 */
+  emoji: string;
+  /** Tailwind 색상 클래스 */
+  colorClass: string;
+}
+
+/** 경쟁 채널 경량 통계 스냅샷 (channels.list 배치 조회 결과) */
+export interface CompetitorSnapshot {
+  /** 채널 ID */
+  channelId: string;
+  /** 채널명 */
+  channelTitle: string;
+  /** 채널 프로필 이미지 URL */
+  channelThumbnailUrl: string;
+  /** 구독자 수 */
+  subscriberCount: number;
+  /** 채널 총 조회수 */
+  totalViewCount: number;
+  /** 채널 총 영상 수 */
+  totalVideoCount: number;
+  /** 영상당 평균 조회수 (총조회수 ÷ 영상수) */
+  avgViewsPerVideo: number;
+  /** 채널 평균 반응도 비율 (영상당 평균조회수 ÷ 구독자) */
+  avgReactionRatio: number;
+}
+
+/** 키워드 비교 분석 결과 (멀티 키워드 비교용) */
+export interface KeywordComparison {
+  /** 키워드 */
+  keyword: string;
+  /** 검색 결과 총 수 */
+  totalResults: number;
+  /** 경쟁도 점수 (0~100) */
+  competitionScore: number;
+  /** 경쟁도 등급 */
+  competitionLevel: "낮음" | "보통" | "높음";
+  /** 분석 영상 평균 반응도 비율 */
+  avgReactionRatio: number;
+  /** 기회 점수 (0~100) */
+  opportunityScore: number;
+}
+
+/** 키워드 기회 점수 결과 (수요 대비 경쟁) */
+export interface OpportunityResult {
+  /** 기회 점수 (0~100) */
+  score: number;
+  /** 기회 등급 */
+  level: "낮음" | "보통" | "높음";
+}
+
+/** 영상 댓글 항목 (인기 댓글) */
+export interface CommentItem {
+  /** 댓글 ID */
+  id: string;
+  /** 작성자 표시명 */
+  author: string;
+  /** 작성자 프로필 이미지 URL */
+  authorProfileImageUrl: string;
+  /** 댓글 본문 (HTML 제거된 텍스트) */
+  text: string;
+  /** 좋아요 수 */
+  likeCount: number;
+  /** 작성 일시 (ISO 8601) */
+  publishedAt: string;
+}
+
+/** 키워드 빈도 항목 */
+export interface KeywordCount {
+  /** 단어 */
+  word: string;
+  /** 등장 횟수 */
+  count: number;
+}
+
+/** 떡상 영상 묶음의 공통 패턴 분석 결과 */
+export interface OutlierPatterns {
+  /** 분석 대상 영상 수 */
+  count: number;
+  /** 제목 키워드 빈도 TOP */
+  topKeywords: KeywordCount[];
+  /** 쇼츠 비율 (0~1) */
+  shortsRatio: number;
+  /** 평균 영상 길이 (초) */
+  avgDurationSec: number;
+  /** 평균 제목 글자수 */
+  avgTitleLength: number;
+  /** 최근 30일 업로드 비율 (0~1) */
+  recentRatio: number;
+  /** 아웃라이어 배수 중앙값 */
+  medianMultiplier: number;
+}

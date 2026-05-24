@@ -14,6 +14,8 @@ import {
   TrendingUp,
   Flame,
   Users,
+  Sparkles,
+  Eye,
   ChevronLeft,
   ChevronRight,
 } from "lucide-react";
@@ -27,6 +29,7 @@ const menuGroups = [
     items: [
       { href: "/", icon: LayoutDashboard, label: "대시보드" },
       { href: "/search", icon: Search, label: "영상 찾기" },
+      { href: "/discover", icon: Sparkles, label: "영감 발굴" },
       { href: "/keywords", icon: TrendingUp, label: "키워드 분석" },
       { href: "/trending", icon: Flame, label: "트렌딩" },
     ],
@@ -35,6 +38,7 @@ const menuGroups = [
     label: "채널",
     items: [
       { href: "/channel", icon: Users, label: "채널 분석" },
+      { href: "/competitors", icon: Eye, label: "경쟁 채널" },
     ],
   },
 ];

@@ -15,6 +15,7 @@ import {
 } from "@/components/ui/table";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Skeleton } from "@/components/ui/skeleton";
+import MetricInfo from "@/components/ui/metric-info";
 import type { EnrichedVideo } from "@/types/analysis";
 import VideoRow from "@/components/search/video-row";
 import VideoCard from "@/components/search/video-card";
@@ -76,7 +77,11 @@ export default function VideoTable({
               <TableHead>제목 / 채널</TableHead>
               <TableHead className="w-[90px] text-right">조회수</TableHead>
               <TableHead className="w-[90px] text-right">구독자</TableHead>
-              <TableHead className="w-[80px] text-center">반응도</TableHead>
+              <TableHead className="w-[80px] text-center">
+                <span className="inline-flex items-center gap-1">
+                  반응도 <MetricInfo metric="reaction" />
+                </span>
+              </TableHead>
               <TableHead className="w-[90px] text-right">게시일</TableHead>
             </TableRow>
           </TableHeader>

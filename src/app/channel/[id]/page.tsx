@@ -22,6 +22,7 @@ import { Button } from "@/components/ui/button";
 import ReactionBadge from "@/components/search/reaction-badge";
 import ReactionPieChart from "@/components/charts/reaction-pie-chart";
 import HealthRadarChart from "@/components/charts/health-radar-chart";
+import MetricInfo from "@/components/ui/metric-info";
 import {
   formatNumber,
   formatRelativeDate,
@@ -158,13 +159,15 @@ export default function ChannelDetailPage({ params }: ChannelDetailPageProps) {
         {/* 건강도 점수 */}
         <Card>
           <CardContent className="flex flex-col items-center p-4">
-            <p className="text-xs text-muted-foreground">채널 건강도</p>
+            <p className="inline-flex items-center gap-1 text-xs text-muted-foreground">
+              채널 건강도 <MetricInfo metric="health" />
+            </p>
             <div className="relative my-2 flex h-20 w-20 items-center justify-center">
               <svg className="h-full w-full -rotate-90" viewBox="0 0 100 100">
-                <circle cx="50" cy="50" r="38" fill="none" stroke="hsl(220 10% 20%)" strokeWidth="8" />
+                <circle cx="50" cy="50" r="38" fill="none" stroke="#e5e7eb" strokeWidth="8" />
                 <circle
                   cx="50" cy="50" r="38" fill="none"
-                  stroke={health.totalScore >= 60 ? "#34d399" : health.totalScore >= 30 ? "#fbbf24" : "#f87171"}
+                  stroke={health.totalScore >= 60 ? "#10b981" : health.totalScore >= 30 ? "#f59e0b" : "#ef4444"}
                   strokeWidth="8" strokeLinecap="round"
                   strokeDasharray={`${health.totalScore * 2.39} 239`}
                 />
@@ -178,7 +181,9 @@ export default function ChannelDetailPage({ params }: ChannelDetailPageProps) {
         {/* 예상 월 수익 */}
         <Card>
           <CardContent className="p-4">
-            <p className="text-xs text-muted-foreground">예상 월 수익</p>
+            <p className="inline-flex items-center gap-1 text-xs text-muted-foreground">
+              예상 월 수익 <MetricInfo metric="revenue" />
+            </p>
             <p className="mt-2 text-xl font-bold">
               ${revenue.min.toLocaleString()} ~ ${revenue.max.toLocaleString()}
             </p>
@@ -191,7 +196,9 @@ export default function ChannelDetailPage({ params }: ChannelDetailPageProps) {
         {/* 평균 반응도 */}
         <Card>
           <CardContent className="p-4">
-            <p className="text-xs text-muted-foreground">평균 반응도</p>
+            <p className="inline-flex items-center gap-1 text-xs text-muted-foreground">
+              평균 반응도 <MetricInfo metric="avgReaction" />
+            </p>
             <p className="mt-2 text-xl font-bold">
               {videos.length > 0
                 ? (
@@ -226,7 +233,9 @@ export default function ChannelDetailPage({ params }: ChannelDetailPageProps) {
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
         <Card>
           <CardContent className="p-5">
-            <h3 className="mb-2 font-semibold">건강도 세부 항목</h3>
+            <h3 className="mb-2 inline-flex items-center gap-1 font-semibold">
+              건강도 세부 항목 <MetricInfo metric="healthBreakdown" />
+            </h3>
             <HealthRadarChart
               dataA={health.breakdown}
               labelA={channelStats?.channelTitle || "채널"}

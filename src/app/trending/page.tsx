@@ -19,6 +19,7 @@ import {
 import { Skeleton } from "@/components/ui/skeleton";
 import ReactionBadge from "@/components/search/reaction-badge";
 import { formatNumber, formatRelativeDate, formatDuration } from "@/lib/format";
+import { REGIONS } from "@/lib/regions";
 import { cn } from "@/lib/utils";
 import type { EnrichedVideo, SearchApiResponse } from "@/types/analysis";
 
@@ -34,13 +35,6 @@ const CATEGORIES = [
   { id: "28", label: "과학기술" },
   { id: "22", label: "인물/블로그" },
   { id: "26", label: "노하우/스타일" },
-];
-
-const REGIONS = [
-  { value: "KR", label: "한국" },
-  { value: "US", label: "미국" },
-  { value: "JP", label: "일본" },
-  { value: "GB", label: "영국" },
 ];
 
 /** 기간 필터 (트렌딩 결과를 업로드 날짜로 필터링) */

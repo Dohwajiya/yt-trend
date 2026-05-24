@@ -8,11 +8,11 @@
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend } from "recharts";
 import type { ReactionDistribution } from "@/types/analysis";
 
-/** 등급별 색상 */
+/** 등급별 색상 (라이트 배경 대비 고려) */
 const COLORS = {
-  Good: "#34d399",   // emerald-400
-  Normal: "#9ca3af", // gray-400
-  Bad: "#f87171",    // red-400
+  Good: "#10b981",   // emerald-500
+  Normal: "#94a3b8", // slate-400
+  Bad: "#ef4444",    // red-500
 };
 
 interface ReactionPieChartProps {
@@ -55,10 +55,10 @@ export default function ReactionPieChart({
         </Pie>
         <Tooltip
           contentStyle={{
-            backgroundColor: "hsl(220 15% 10%)",
-            border: "1px solid hsl(220 10% 20%)",
+            backgroundColor: "#ffffff",
+            border: "1px solid #e5e7eb",
             borderRadius: "6px",
-            color: "#fff",
+            color: "#111827",
             fontSize: "12px",
           }}
           formatter={(value) => [`${value}개`]}
@@ -66,7 +66,7 @@ export default function ReactionPieChart({
         <Legend
           wrapperStyle={{ fontSize: "12px" }}
           formatter={(value: string) => (
-            <span style={{ color: "#ccc" }}>{value}</span>
+            <span style={{ color: "#374151" }}>{value}</span>
           )}
         />
       </PieChart>

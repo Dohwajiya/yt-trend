@@ -7,6 +7,7 @@ import type {
   CompetitionResult,
   ReactionDistribution,
   EnrichedVideo,
+  OpportunityResult,
 } from "@/types/analysis";
 
 /**
@@ -57,4 +58,58 @@ export function calculateReactionDistribution(
     normal: videos.filter((v) => v.reaction.grade === "Normal").length,
     bad: videos.filter((v) => v.reaction.grade === "Bad").length,
   };
+}
+
+/**
+ * 영상 목록의 평균 반응도 비율을 계산하는 함수
+ * 구독자 수가 0(비공개)인 영상은 평균에서 제외한다
+ *
+ * @param videos - 분석할 영상 목록
+ * @returns 평균 반응도 비율 (유효 영상이 없으면 0)
+ */
+export function calculateAverageReactionRatio(
+  videos: EnrichedVideo[]
+): number {
+  const valid = videos.filter((v) => v.subscriberCount > 0);
+  if (valid.length === 0) return 0;
+  return valid.reduce((sum, v) => sum + v.reaction.ratio, 0) / valid.length;
+}
+
+/**
+ * 키워드 기회 점수를 산출하는 함수
+ * 반응(수요)이 높고 경쟁이 낮을수록 높은 점수를 부여한다.
+ *
+ * @param competitionScore - 경쟁도 점수 (0~100)
+ * @param avgReactionRatio - 분석 영상 평균 반응도 비율
+ * @returns 기회 점수와 등급
+ *
+ * 계산: 수요 점수(평균 반응도 0.5면 만점) 50% + 저경쟁(100-경쟁도) 50%
+ */
+export function calculateOpportunityScore(
+  competitionScore: number,
+  avgReactionRatio: number
+): OpportunityResult {
+  // 수요 점수: 평균 반응도가 0.5(구독자의 50%)면 100점
+  const demandScore = Math.min(
+    100,
+    Math.max(0, (avgReactionRatio / 0.5) * 100)
+  );
+
+  const score = Math.round(
+    Math.min(
+      100,
+      Math.max(0, demandScore * 0.5 + (100 - competitionScore) * 0.5)
+    )
+  );
+
+  let level: "낮음" | "보통" | "높음";
+  if (score < 40) {
+    level = "낮음";
+  } else if (score < 70) {
+    level = "보통";
+  } else {
+    level = "높음";
+  }
+
+  return { score, level };
 }

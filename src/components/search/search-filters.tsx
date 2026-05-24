@@ -14,6 +14,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import type { VideoTypeFilter } from "@/types/analysis";
+import { REGIONS } from "@/lib/regions";
 import { cn } from "@/lib/utils";
 
 /** 업로드 날짜 필터 값 */
@@ -60,15 +61,6 @@ const sortOptions: { value: SortBy; label: string }[] = [
   { value: "reaction", label: "반응도순" },
 ];
 
-/** 지역 코드 옵션 */
-const regions = [
-  { value: "KR", label: "한국" },
-  { value: "US", label: "미국" },
-  { value: "JP", label: "일본" },
-  { value: "GB", label: "영국" },
-  { value: "IN", label: "인도" },
-];
-
 export default function SearchFilters({
   videoTypeFilter,
   onVideoTypeChange,
@@ -112,7 +104,7 @@ export default function SearchFilters({
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              {regions.map((region) => (
+              {REGIONS.map((region) => (
                 <SelectItem key={region.value} value={region.value}>
                   {region.label}
                 </SelectItem>
