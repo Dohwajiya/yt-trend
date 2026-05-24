@@ -13,10 +13,16 @@ import { getOutlierMultiplier } from "@/lib/outlier";
  * (의미 없는 빈출어를 걸러 시그널을 키운다)
  */
 const STOPWORDS = new Set([
+  // 한국어
   "영상", "채널", "구독", "좋아요", "진짜", "정말", "그냥", "이거", "근데",
   "너무", "완전", "하는", "했는데", "합니다", "입니다", "있는", "없는",
-  "그리고", "하지만", "오늘", "우리", "사람", "느낌", "ep", "the", "and",
-  "for", "you", "your", "with", "this", "that", "vlog", "official", "feat",
+  "그리고", "하지만", "오늘", "우리", "사람", "느낌",
+  // 영어
+  "ep", "the", "and", "for", "you", "your", "with", "this", "that",
+  "vlog", "official", "feat",
+  // 일본어 (조사·흔한 어미/대명사)
+  "する", "した", "して", "です", "ます", "ない", "いる", "これ", "それ",
+  "この", "その", "あの", "こと", "もの", "ため", "という", "さん", "ちゃん",
 ]);
 
 /**
@@ -28,9 +34,10 @@ const STOPWORDS = new Set([
  * @returns 정제된 토큰 배열
  */
 function tokenize(title: string): string[] {
+  // 한글·영문·숫자 + 일본어(히라가나·가타카나·한자)만 남긴다
   return title
     .toLowerCase()
-    .replace(/[^가-힣a-z0-9]+/g, " ")
+    .replace(/[^가-힣a-z0-9぀-ヿ一-鿿]+/g, " ")
     .split(" ")
     .filter((t) => t.length >= 2 && !STOPWORDS.has(t));
 }
